@@ -1,0 +1,253 @@
+@using System.Security.Cryptography;
+@using OnlinePasswordGenerator.Data;
+@using System.Text
+@using System.Text.RegularExpressions
+@inject IJSRuntime js
+
+
+<div class="w3-padding">
+    <div class="w3-padding w3-round w3-margin-bottom w3-xxlarge w3-bottombar w3-border-green w3-white w3-card w3-display-container" style="min-height: 1.8em; overflow: hidden;">
+        @generatedPassword
+        <div class="w3-large w3-display-right w3-margin-right" style="z-index: 1; background-color: #fff!important;">
+            <button class="w3-button w3-large w3-round" title="Copy passphrase" @onclick=copy>✂</button>
+            <button class="w3-button w3-large w3-round" title="Generate new passphrase" @onclick=getNext>↻</button>
+        </div>
+    </div>
+    <div class="w3-padding w3-round w3-white w3-card">
+        <h2 class="w3-border-bottom">Customize Passphrase</h2>
+
+        <h4>Sentence Structure</h4>
+        <div class="w3-row-padding">
+        @foreach (var set in structures) {
+            <div class="w3-half">
+                <input class="w3-check" type="checkbox" @bind=@set.IsEnabled> <label>@set.Name <small>(@set.Description)</small></label>
+            </div>
+        }
+        </div>
+
+        <h4>Dictionary</h4>
+        <h6>Prepositions</h6>
+        <div class="w3-row-padding">
+        @foreach (var set in prepositions) {
+            <div class="w3-half">
+                <input class="w3-check" type="checkbox" @bind=@set.IsEnabled> <label>@set.Name <small>(@set.Description)</small></label>
+            </div>
+        }
+        </div>
+        <h6>Nouns</h6>
+        <div class="w3-row-padding">
+        @foreach (var set in nouns) {
+            <div class="w3-half">
+                <input class="w3-check" type="checkbox" @bind=@set.IsEnabled> <label>@set.Name <small>(@set.Description)</small></label>
+            </div>
+        }
+        </div>
+        <div style="padding-left: 46px; padding-top: 6px;">
+            <label>Custom Nouns <small>(comma separated)</small></label><br>
+            <textarea style="resize: vertical; width: 100%;">@customNounString</textarea>
+        </div>
+        <h6>Verbs</h6>
+        <div class="w3-row-padding">
+        @foreach (var set in verbs) {
+            <div class="w3-half">
+                <input class="w3-check" type="checkbox" @bind=@set.IsEnabled> <label>@set.Name <small>(@set.Description)</small></label>
+            </div>
+        }
+        </div>
+        <div style="padding-left: 46px; padding-top: 6px;">
+            <label>Custom Verbs <small>(comma separated)</small></label><br>
+            <textarea style="resize: vertical; width: 100%;">@customVerbString</textarea>
+        </div>
+
+
+        <h4>Post-Processing</h4>
+        <h6>Whitespaces</h6>
+        <div class="w3-container">
+            <p>Whitespaces are generated in phrases automatically. However, most password systems do not allow whitespace. Here you can specify how to handle whitespace in the resulting passphrase.</p>
+            <select class="w3-select w3-border" @bind=postprocessingWhitespace>
+                @foreach (var e in Enum.GetValues<WhitespaceHandling>()) {
+                    <option>@e</option>
+                }
+            </select>
+        </div>
+        <h6>Leet Speak</h6>
+        <div class="w3-container">
+            <p>A modified system of spelling where characters are replaced with numbers or symbols that are are visually similar. You may choose to set a max percentage of letters to replace with their Leet counterpart.</p>
+            <div class="w3-row-padding">
+                <div class="w3-col" style="width: 6em;">
+                    <input class="w3-input w3-border w3-round-large" type="number" @bind=l33tPercent>
+                </div>
+                <div class="w3-rest">
+                    <input type="range" min="0" max="100" class="w3-input slider" @bind=l33tPercent>
+                </div>
+            </div>
+        </div>
+
+        <div class="w3-padding w3-margin top w3-center">
+            <button class="w3-button w3-green w3-round-large" title="Generate new passphrase" @onclick=getNext>↻ Generate</button>
+        </div>
+    </div>
+</div>
+
+@if (showCopied) {
+<div class="w3-padding w3-animate-bottom w3-green w3-round-xlarge w3-xlarge" style="position: fixed; bottom: 16px; left: 50%; transform: translate(-50%, -50%); margin: 0 auto;">
+    Copied!
+</div>
+}
+
+
+@code {
+    private List<ISentenceStructure> structures = new List<ISentenceStructure>(){
+        new SubjectVerbPredicate(),
+    };
+    private List<IWordSet> nouns = new List<IWordSet>{
+        new EnglishFirstNamesNounSet(),
+        // names of groups
+        new AnimalNounSet(),
+        new MountainNounSet(),
+        new OceanNounSet(),
+        new SeaNounSet(),
+        new RiversNounSet(),
+        new UnescoNounSet(),
+        // names of streets
+        // names of schools
+        new ContinentNounSet(),
+        // names of states/provinces
+        new CountryNounSet(),
+        // names of cities
+        // names of books
+        // names of movies 
+        // names of plays
+        // names of art
+    };
+    private List<string> customNouns = new List<string>();
+    private string customNounString {
+        get => string.Join(',', customNouns);
+        set {
+            customNouns.Clear();
+            customNouns.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+    }
+    private List<IWordSet> prepositions = new List<IWordSet> {
+        new OneWordPrepositionSet(),    
+    };
+    private List<IWordSet> verbs = new List<IWordSet>{
+        new PhysicalVerbSet(),
+        new MentalVerbSet(),
+        new LinkingVerbSet(),
+    };
+    private List<string> customVerbs = new List<string>();
+    private string customVerbString {
+        get => string.Join(',', customVerbs);
+        set {
+            customVerbs.Clear();
+            customVerbs.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+        }
+    }
+
+    enum WhitespaceHandling {
+        Allow, CamelCase, Underscores
+    }
+    private WhitespaceHandling postprocessingWhitespace = WhitespaceHandling.CamelCase;
+
+    private int _l33tPercent;
+    private int l33tPercent {
+        get => _l33tPercent;
+        set => _l33tPercent = Math.Min(100, Math.Max(0, value));
+    }
+    private Dictionary<char, List<string>> leetConversions = new Dictionary<char, List<string>>{
+        {'a', new List<string>{"4", "@"}},
+        {'b', new List<string>{"8", "|3"}},
+        {'c', new List<string>{"("}},
+        {'d', new List<string>{"|)"}},
+        {'e', new List<string>{"3"}},
+        {'f', new List<string>{"|="}},
+        {'g', new List<string>{"6","&", "C_+"}},
+        {'h', new List<string>{"#", ":-:","}{"}},
+        {'i', new List<string>{"1", "|", "!"}},
+        {'j', new List<string>{"_]"}},
+        {'k', new List<string>{"|<"}},
+        {'l', new List<string>{"1", "|"}},
+        {'m', new List<string>{"/v\\", "^^"}},
+        {'n', new List<string>{"/\\/"}},
+        {'o', new List<string>{"0"}},
+        {'q', new List<string>{"9", "<|"}},
+        {'r', new List<string>{"|`"}},
+        {'s', new List<string>{"5", "$"}},
+        {'t', new List<string>{"7", "+", "-|-"}},
+        {'u', new List<string>{"|_|"}},
+        {'v', new List<string>{"\\/"}},
+        {'w', new List<string>{"vv", "\\N", "\\^/"}},
+        {'x', new List<string>{"><"}},
+        {'y', new List<string>{"`/"}},
+        {'z', new List<string>{"2", "%"}},
+    };
+
+    private int RandomNumber(int fromInclusive, int toExclusive) => System.Security.Cryptography.RandomNumberGenerator.GetInt32(fromInclusive, toExclusive);
+    private string generatedPassword = string.Empty;
+
+    protected override async Task OnInitializedAsync() {
+        await getNext();
+    }
+
+    private async Task getNext() {
+        await Task.Run(() => {
+            if (structures.Count < 1)
+                return;
+
+            var dict = new WordDictionary {
+                Adjectives = new List<string>(),
+                Nouns = nouns.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customNouns).Distinct().ToList(),
+                Prepositions = prepositions.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Distinct().ToList(),
+                Adverbs = new List<string>(),
+                Verbs = verbs.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customVerbs).Distinct().ToList(),
+            };
+
+            // pick a sequence
+            var structure = structures[RandomNumber(0, structures.Count)];
+            var phrase = structure.Replace(dict);
+            
+            // post-process
+            // whitespace
+            switch (postprocessingWhitespace) {
+                case WhitespaceHandling.CamelCase: {
+                    phrase = new Regex(@"(?:^|[\s])+(?<char>[^\s])").Replace(phrase, (match) => {
+                        return match.Groups["char"].Value.Trim().ToUpper();
+                    });
+                    break;
+                }
+                case WhitespaceHandling.Underscores: {
+                    phrase = new Regex(@"\s+").Replace(phrase, "_");
+                    break;
+                }
+            }
+            // leet speak
+            var chars =(int)(phrase.Length * (l33tPercent/100f));
+            for (var i = 0; i < chars; i++) {
+                var cindex = RandomNumber(0, phrase.Length);
+                var c = char.ToLower(phrase[cindex]);
+                if (leetConversions.ContainsKey(c)) {
+                    var conversions = leetConversions[c];
+                    var convertTo = conversions[RandomNumber(0, conversions.Count)];
+                    phrase = phrase.Substring(0, cindex) + convertTo + phrase.Substring(cindex + 1);
+                }
+            }
+
+            // Done
+            this.generatedPassword = phrase;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private bool showCopied = false;
+    private async Task copy() {
+        await js.InvokeVoidAsync("navigator.clipboard.writeText", generatedPassword);
+        showCopied = true;
+        await InvokeAsync(hideCopy);
+    }
+    private async Task hideCopy() {
+        await Task.Delay(6_000);
+        showCopied = false;
+        await InvokeAsync(StateHasChanged);
+    }
+}

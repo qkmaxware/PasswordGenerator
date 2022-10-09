@@ -1,0 +1,13 @@
+:root {
+    --bg: aliceblue
+}
+
+.background {
+    background-color: var(--bg) !important;
+    color: black !important;
+}
+
+body {
+    background-color: var(--bg);
+    color: black;
+}

@@ -1,0 +1,61 @@
+namespace OnlinePasswordGenerator.Data;
+
+public class PhysicalVerbSet : IWordSet {
+    public bool IsEnabled {get; set;} = true;
+    public string Name => "Physical";
+    public string Description => "Actions that can be taken by a subject using one's body or a tool";
+    public IEnumerable<string> GetWords() {
+        yield return "act";
+        yield return "answer";
+        yield return "approve";
+        yield return "arrange";
+        yield return "break";
+        yield return "build";
+        yield return "buy";
+        yield return "coach";
+        yield return "color";
+        yield return "create";
+        yield return "complete";
+        yield return "cry";
+        yield return "dance";
+        yield return "describe";
+        yield return "draw";
+        yield return "drink";
+        yield return "eat";
+        yield return "edit";
+        yield return "enter";
+        yield return "exit";
+        yield return "imitate";
+        yield return "invent";
+        yield return "jump";
+        yield return "laugh";
+        yield return "lie";
+        yield return "listen";
+        yield return "open";
+        yield return "paint";
+        yield return "plan";
+        yield return "play";
+        yield return "read";
+        yield return "replace";
+        yield return "run";
+        yield return "scream";
+        yield return "see";
+        yield return "shop";
+        yield return "shout";
+        yield return "sing";
+        yield return "skip";
+        yield return "sleep";
+        yield return "sneeze";
+        yield return "solve";
+        yield return "study";
+        yield return "teach";
+        yield return "touch";
+        yield return "turn";
+        yield return "walk";
+        yield return "win";
+        yield return "write";
+        yield return "whistle";
+        yield return "yank";
+        yield return "zip";
+    }
+}

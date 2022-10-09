@@ -1,0 +1,23 @@
+﻿@page "/"
+
+<div class="w3-bar w3-blue w3-margin-bottom w3-xlarge" style="padding-right: 16px;">
+    <span class="w3-bar-item" style="user-select: none;">Pa<img src="icon-512.png" style="height: 1.2em">Word</span>
+    <button class="w3-bar-item w3-button w3-right @(mode == Mode.Phrase ? "background" : string.Empty)" @onclick=@(() => mode = Mode.Phrase)>Passphrase</button>
+    <button class="w3-bar-item w3-button w3-right @(mode == Mode.Word ? "background" : string.Empty)" @onclick=@(() => mode = Mode.Word)>Password</button>
+</div>
+
+<div>
+@if (mode == Mode.Word) {
+    <PasswordGenerator></PasswordGenerator>
+} else if (mode == Mode.Phrase) {
+    <PassphraseGenerator></PassphraseGenerator>
+}
+</div>
+
+@code {
+    private enum Mode {
+        Word, Phrase
+    };
+    private Mode mode = Mode.Word;
+
+}
