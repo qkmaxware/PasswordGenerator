@@ -46,7 +46,7 @@
         </div>
         <div style="padding-left: 46px; padding-top: 6px;">
             <label>Custom Nouns <small>(comma separated)</small></label><br>
-            <textarea style="resize: vertical; width: 100%;">@customNounString</textarea>
+            <textarea style="resize: vertical; width: 100%;"@bind=@customNounString></textarea>
         </div>
         <h6>Verbs</h6>
         <div class="w3-row-padding">
@@ -58,7 +58,7 @@
         </div>
         <div style="padding-left: 46px; padding-top: 6px;">
             <label>Custom Verbs <small>(comma separated)</small></label><br>
-            <textarea style="resize: vertical; width: 100%;">@customVerbString</textarea>
+            <textarea style="resize: vertical; width: 100%;" @bind=customVerbString></textarea>
         </div>
 
 
@@ -127,7 +127,8 @@
         get => string.Join(',', customNouns);
         set {
             customNouns.Clear();
-            customNouns.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            var values = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            customNouns.AddRange(values);
         }
     }
     private List<IWordSet> prepositions = new List<IWordSet> {
@@ -197,47 +198,51 @@
             if (structures.Count < 1)
                 return;
 
-            var dict = new WordDictionary {
-                Adjectives = new List<string>(),
-                Nouns = nouns.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customNouns).Distinct().ToList(),
-                Prepositions = prepositions.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Distinct().ToList(),
-                Adverbs = new List<string>(),
-                Verbs = verbs.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customVerbs).Distinct().ToList(),
-            };
+            try {
+                var dict = new WordDictionary {
+                    Adjectives = new List<string>(),
+                    Nouns = nouns.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customNouns).Distinct().ToList(),
+                    Prepositions = prepositions.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Distinct().ToList(),
+                    Adverbs = new List<string>(),
+                    Verbs = verbs.Where(set => set.IsEnabled).SelectMany(set => set.GetWords()).Concat(customVerbs).Distinct().ToList(),
+                };
 
-            // pick a sequence
-            var structure = structures[RandomNumber(0, structures.Count)];
-            var phrase = structure.Replace(dict);
-            
-            // post-process
-            // whitespace
-            switch (postprocessingWhitespace) {
-                case WhitespaceHandling.CamelCase: {
-                    phrase = new Regex(@"(?:^|[\s])+(?<char>[^\s])").Replace(phrase, (match) => {
-                        return match.Groups["char"].Value.Trim().ToUpper();
-                    });
-                    break;
+                // pick a sequence
+                var structure = structures[RandomNumber(0, structures.Count)];
+                var phrase = structure.Replace(dict);
+                
+                // post-process
+                // whitespace
+                switch (postprocessingWhitespace) {
+                    case WhitespaceHandling.CamelCase: {
+                        phrase = new Regex(@"(?:^|[\s])+(?<char>[^\s])").Replace(phrase, (match) => {
+                            return match.Groups["char"].Value.Trim().ToUpper();
+                        });
+                        break;
+                    }
+                    case WhitespaceHandling.Underscores: {
+                        phrase = new Regex(@"\s+").Replace(phrase, "_");
+                        break;
+                    }
                 }
-                case WhitespaceHandling.Underscores: {
-                    phrase = new Regex(@"\s+").Replace(phrase, "_");
-                    break;
+                // leet speak
+                var chars =(int)(phrase.Length * (l33tPercent/100f));
+                for (var i = 0; i < chars; i++) {
+                    var cindex = RandomNumber(0, phrase.Length);
+                    var c = char.ToLower(phrase[cindex]);
+                    if (leetConversions.ContainsKey(c)) {
+                        var conversions = leetConversions[c];
+                        var convertTo = conversions[RandomNumber(0, conversions.Count)];
+                        phrase = phrase.Substring(0, cindex) + convertTo + phrase.Substring(cindex + 1);
+                    }
                 }
-            }
-            // leet speak
-            var chars =(int)(phrase.Length * (l33tPercent/100f));
-            for (var i = 0; i < chars; i++) {
-                var cindex = RandomNumber(0, phrase.Length);
-                var c = char.ToLower(phrase[cindex]);
-                if (leetConversions.ContainsKey(c)) {
-                    var conversions = leetConversions[c];
-                    var convertTo = conversions[RandomNumber(0, conversions.Count)];
-                    phrase = phrase.Substring(0, cindex) + convertTo + phrase.Substring(cindex + 1);
-                }
-            }
 
-            // Done
-            this.generatedPassword = phrase;
-            InvokeAsync(StateHasChanged);
+                // Done
+                this.generatedPassword = phrase;
+                InvokeAsync(StateHasChanged);
+            } catch (Exception e) {
+                Console.WriteLine(e);
+            }
         });
     }
 
