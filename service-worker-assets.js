@@ -33,7 +33,7 @@
       "url": "_framework\/icudt.dat"
     },
     {
-      "hash": "sha256-3m2GQCKTMvdg9XrTNJI1Ot8ji91lM6ai23UMPAyflQQ=",
+      "hash": "sha256-kWMRS3a+cGXus1PuX479A2HZ\/n8Ou16UtM7lDi1l9zI=",
       "url": "_framework\/blazor.boot.json"
     },
     {
@@ -93,7 +93,7 @@
       "url": "_framework\/Microsoft.JSInterop.WebAssembly.dll"
     },
     {
-      "hash": "sha256-H8f5iccrqvPAJhYhzqULw2qB6jBn6ou+YbyX9kuwggg=",
+      "hash": "sha256-ThNmtsjTmp6YhxdNCGaGviRBJCaCEVjAmSnD\/zoKBHs=",
       "url": "_framework\/OnlinePasswordGenerator.dll"
     },
     {
@@ -209,7 +209,7 @@
       "url": "icon-512.png"
     },
     {
-      "hash": "sha256-fr70+\/k8VTnxKYJ7wv3uhPzpTTgkJLFH88406NJiRB8=",
+      "hash": "sha256-bMh1xmrz9P0bL6eUogQcgLnWOprZt\/XfdqeLKLSDpzY=",
       "url": "index.html"
     },
     {
@@ -217,5 +217,5 @@
       "url": "manifest.json"
     }
   ],
-  "version": "L72gFdQt"
+  "version": "egoJtF76"
 };
